@@ -18,6 +18,42 @@ body{
   width: 100%;
 }
 
+
+.frontpage{
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+.frontpage img{
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  width: 500px;
+  height: 500px;
+}
+
+@media only screen and (max-width: 500px) {
+  .frontpage img{
+    width: 400px;
+    height: 400px;
+  }
+}
+
+@media only screen and (max-width: 400px) {
+  .frontpage img{
+    width: 300px;
+    height: 300px;
+  }
+}
+@media only screen and (max-width: 300px) {
+  .frontpage img{
+    width: 250px;
+    height: 250px;
+  } 
+}
+
 .background img {
     position: absolute;
     align-items: center;
@@ -50,7 +86,6 @@ body{
 }
 .nextslide{
     position: relative;
-    top: 100vh;
 }
 
 .top-bg{
@@ -76,10 +111,10 @@ h1{
   font-weight: 800;
   font-size: 7vw;
   line-height: 1;
-  color: #ffeba7;
+  color: #bbb2e9;
   text-align: center;
-  -webkit-text-stroke: 2px #ffeba7;
-  text-stroke: 2px #ffeba7;
+  -webkit-text-stroke: 2px #bbb2e9;
+  text-stroke: 2px #bbb2e9;
   -webkit-text-fill-color: transparent;
   text-fill-color: transparent;
   color: transparent;
@@ -171,7 +206,7 @@ h1{
   padding: 0;
   margin: 0;
   z-index: 9;
-  overflow: hidden;
+  overflow: hidden !important;
   box-shadow: 0 8px 30px 0 rgba(0,0,0,0.3);
   background-color: #181818;
   animation: border-transform 7s linear infinite;
@@ -257,7 +292,7 @@ h1{
 }
 .nav ul li a:hover{
   text-decoration: none;
-  color: #ffeba7;
+  color: #bbb2e9;
 }
 .nav ul li a:after{
   display: block;
@@ -331,9 +366,9 @@ h1{
     font-size: 9vw;
     -webkit-text-stroke: 2px transparent;
     text-stroke: 2px transparent;
-    -webkit-text-fill-color: #ffeba7;
-    text-fill-color: #ffeba7;
-    color: #ffeba7;
+    -webkit-text-fill-color: #bbb2e9;
+    text-fill-color: #bbb2e9;
+    color: #bbb2e9;
   }
   .nav ul li a{
     font-size: 8vh;
@@ -341,10 +376,121 @@ h1{
 }
 
 
+/* footer  */
 
+body {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  grid-template-areas: "main" "footer";
+  overflow-x: hidden;
+  min-height: 100vh;
+  font-family: "Open Sans", sans-serif;
+}
+body .footer {
+  z-index: 1;
+  --footer-background:#34a4e8;
+  display: grid;
+  margin-top: 200px;
+  margin-bottom: 100px;
+  position: relative;
+  width: 100vw;
+  grid-area: footer;
+  min-height: 12rem;
+}
 
+body .footer .bubbles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1rem;
+  background: var(--footer-background);
+  filter: url("#blob");
+}
+body .footer .bubbles .bubble {
+  position: absolute;
+  left: var(--position, 50%);
+  background: var(--footer-background);
+  border-radius: 100%;
+  -webkit-animation: bubble-size var(--time, 4s) ease-in infinite var(--delay, 0s), bubble-move var(--time, 4s) ease-in infinite var(--delay, 0s);
+          animation: bubble-size var(--time, 4s) ease-in infinite var(--delay, 0s), bubble-move var(--time, 4s) ease-in infinite var(--delay, 0s);
+  transform: translate(-50%, 100%);
+}
+body .footer .content {
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-gap: 4rem;
+  padding: 2rem;
+  background: var(--footer-background);
+}
+body .footer .content a, body .footer .content p {
+  color: #F5F7FA;
+  text-decoration: none;
+}
+body .footer .content b {
+  color: white;
+}
+body .footer .content p {
+  margin: 0;
+  font-size: 0.75rem;
+}
+body .footer .content > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+body .footer .content > div > div {
+  margin: 0.25rem 0;
+}
+body .footer .content > div > div > * {
+  margin-right: 0.5rem;
+}
+body .footer .content > div .image {
+  align-self: center;
+  width: 4rem;
+  height: 4rem;
+  margin: 0.25rem 0;
+  background-size: cover;
+  background-position: center;
+}
 
+@-webkit-keyframes bubble-size {
+  0%, 75% {
+    width: var(--size, 4rem);
+    height: var(--size, 4rem);
+  }
+  100% {
+    width: 0rem;
+    height: 0rem;
+  }
+}
 
-
+@keyframes bubble-size {
+  0%, 75% {
+    width: var(--size, 4rem);
+    height: var(--size, 4rem);
+  }
+  100% {
+    width: 0rem;
+    height: 0rem;
+  }
+}
+@-webkit-keyframes bubble-move {
+  0% {
+    bottom: -4rem;
+  }
+  100% {
+    bottom: var(--distance, 10rem);
+  }
+}
+@keyframes bubble-move {
+  0% {
+    bottom: -4rem;
+  }
+  100% {
+    bottom: var(--distance, 10rem);
+  }
+}
 
 
