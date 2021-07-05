@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&amp;display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
     <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/s.cdpn.io/1462889/unicons.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
     <link rel="stylesheet" href="assest/css/style.css">
     <link rel="stylesheet" type="text/css" href="./Page-Transition-Using-BarbaJS-And-GSAP-master/main.css">
     <!-- js files -->
@@ -19,13 +21,104 @@
 </head>
 
 <body data-barba="wrapper">
+<style>
+    body{
+    font-family: 'Open Sans', sans-serif;
+}
+*:hover{
+    -webkit-transition: all 1s ease;
+    transition: all 1s ease;
+}
 
+/*Profile Card 1*/
+.col-md-4{
+    position: relative;
+    display: inline-block;
+}
+.profile-card-1 {
+  font-family: 'Open Sans', Arial, sans-serif;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  color: #ffffff;
+  text-align: center;
+  height:368px;
+  border:none;
+  display: inline-block !important;
+}
+.profile-card-1 .background {
+  width:100%;
+  vertical-align: top;
+  opacity: 0.9;
+  -webkit-filter: blur(5px);
+  filter: blur(5px);
+   -webkit-transform: scale(1.8);
+  transform: scale(2.8);
+}
+.profile-card-1 .card-content {
+  width: 100%;
+  padding: 15px 25px;
+  position: absolute;
+  left: 0;
+  top: 50%;
+}
+.profile-card-1 .profile {
+  border-radius: 50%;
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  max-width: 100px;
+  opacity: 1;
+  box-shadow: 3px 3px 20px rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 255, 255, 1);
+  -webkit-transform: translate(-50%, 0%);
+  transform: translate(-50%, 0%);
+}
+.profile-card-1 h2 {
+  margin: 0 0 5px;
+  font-weight: 600;
+  font-size:25px;
+}
+.profile-card-1 h2 small {
+  display: block;
+  font-size: 15px;
+  margin-top:10px;
+}
+.profile-card-1 i {
+  display: inline-block;
+    font-size: 16px;
+    color: #ffffff;
+    text-align: center;
+    border: 1px solid #fff;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    border-radius: 50%;
+    margin:0 5px;
+}
+.profile-card-1 .icon-block{
+    float:left;
+    width:100%;
+    margin-top:15px;
+}
+.profile-card-1 .icon-block a{
+    text-decoration:none;
+}
+.profile-card-1 i:hover {
+  background-color:#fff;
+  color:#2E3434;
+  text-decoration:none;
+}
+
+
+</style>
 
     <input class="menu-icon" type="checkbox" id="menu-icon" name="menu-icon" />
     <label for="menu-icon"></label>
     <nav class="nav">
         <ul class="pt-5">
-            <li><a href="./Members.html">Member</a></li>
+            <li><a href="./index.html">Home</a></li>
             <li><a href="#welcome">Founders</a></li>
             <li><a href="news.html">News</a></li>
             <li><a href="#">Contact</a></li>
@@ -38,32 +131,77 @@
         </div>
     </div>
 
-    <main data-barba="container" data-barba-namespace="home-section">
+    <main data-barba="container" data-barba-namespace="about-section">
 
-    <section>
-        <div class="background">
-            <img src="https://www.theartcenter.nyc/images/tac-top-shapes.svg">
-        </div>
-    <div class="frontpage">
-        <img src="assest/img/KIDSPLORE.CLUB__2_-removebg.png">/
-    </div>
-    </section>
 
     <section>
         <div class="aboutus">
-            <h1>About Us</h1>
-            <h2>A Club to broadcast the talents of young minds, particularly in the field of Science!
+            <h1>Members</h1>
 
-                Here, you will see some extraordinary experiments of science, brilliant tutorial videos, explanatory videos, etc. In short, these videos will enhance your knowledge, as well as make you appreciate the exceptional talent of students. 
-                 And we can guarantee your precious minutes won't be wasted here.
-                </h2>
-                <div class="button">
-                <button class="learn-more">
-                    <span class="square" aria-hidden="true">
-                      <span class="icon arrow"></span>
-                    </span>
-                    <span class="button-text"><a target="_blank" href="https://www.youtube.com/channel/UCloWABrv5QndgPVV2mjRrfg">YouTube</a></span>
-                </button>
+
+            <div class="col-md-12">
+    		    <div class="card profile-card-1">
+    		        <img src="https://cdn.pixabay.com/photo/2016/05/24/16/48/mountains-1412683__340.png" alt="profile-sample1" class="background"/>
+    		        <img src="https://styles.redditmedia.com/t5_2jvi82/styles/profileIcon_7ey2rc5cjgm51.jpg?width=256&height=256&crop=256:256,smart&s=a6be498005984310319de38d62c348d7d0b4efa0" alt="profile-image" class="profile"/>
+                    <div class="card-content">
+                    <h2>Dhairya Bhatt<small>Engineer</small></h3>
+                    <div class="icon-block"><a href="https://youtube.com/dhairyabhatt"><i class="fa fa-youtube"></i></a><a href="https://twitter.com/Dhairyabhatt014"> <i class="fa fa-twitter"></i></a><a href="https://dhairyabhatt.com"> <i class="fa fa-globe"></i></a></div>
+                    </div>
+                </div>
+    		</div>
+            
+
+            <div class="col-md-12">
+    		    <div class="card profile-card-1">
+    		        <img src="https://cdn.pixabay.com/photo/2016/05/24/16/48/mountains-1412683__340.png" alt="profile-sample1" class="background"/>
+    		        <img src="https://styles.redditmedia.com/t5_2jvi82/styles/profileIcon_7ey2rc5cjgm51.jpg?width=256&height=256&crop=256:256,smart&s=a6be498005984310319de38d62c348d7d0b4efa0" alt="profile-image" class="profile"/>
+                    <div class="card-content">
+                    <h2>Dhairya Bhatt<small>Engineer</small></h3>
+                    <div class="icon-block"><a href="https://youtube.com/dhairyabhatt"><i class="fa fa-youtube"></i></a><a href="https://twitter.com/Dhairyabhatt014"> <i class="fa fa-twitter"></i></a><a href="https://dhairyabhatt.com"> <i class="fa fa-globe"></i></a></div>
+                    </div>
+                </div>
+    		</div>
+
+            
+
+            <div class="col-md-12">
+    		    <div class="card profile-card-1">
+    		        <img src="https://cdn.pixabay.com/photo/2016/05/24/16/48/mountains-1412683__340.png" alt="profile-sample1" class="background"/>
+    		        <img src="https://styles.redditmedia.com/t5_2jvi82/styles/profileIcon_7ey2rc5cjgm51.jpg?width=256&height=256&crop=256:256,smart&s=a6be498005984310319de38d62c348d7d0b4efa0" alt="profile-image" class="profile"/>
+                    <div class="card-content">
+                    <h2>Dhairya Bhatt<small>Engineer</small></h3>
+                    <div class="icon-block"><a href="https://youtube.com/dhairyabhatt"><i class="fa fa-youtube"></i></a><a href="https://twitter.com/Dhairyabhatt014"> <i class="fa fa-twitter"></i></a><a href="https://dhairyabhatt.com"> <i class="fa fa-globe"></i></a></div>
+                    </div>
+                </div>
+    		</div>
+
+            
+
+            <div class="col-md-12">
+    		    <div class="card profile-card-1">
+    		        <img src="https://cdn.pixabay.com/photo/2016/05/24/16/48/mountains-1412683__340.png" alt="profile-sample1" class="background"/>
+    		        <img src="https://styles.redditmedia.com/t5_2jvi82/styles/profileIcon_7ey2rc5cjgm51.jpg?width=256&height=256&crop=256:256,smart&s=a6be498005984310319de38d62c348d7d0b4efa0" alt="profile-image" class="profile"/>
+                    <div class="card-content">
+                    <h2>Dhairya Bhatt<small>Engineer</small></h3>
+                    <div class="icon-block"><a href="https://youtube.com/dhairyabhatt"><i class="fa fa-youtube"></i></a><a href="https://twitter.com/Dhairyabhatt014"> <i class="fa fa-twitter"></i></a><a href="https://dhairyabhatt.com"> <i class="fa fa-globe"></i></a></div>
+                    </div>
+                </div>
+    		</div>
+
+            
+
+            <div class="col-md-12">
+    		    <div class="card profile-card-1">
+    		        <img src="https://cdn.pixabay.com/photo/2016/05/24/16/48/mountains-1412683__340.png" alt="profile-sample1" class="background"/>
+    		        <img src="https://styles.redditmedia.com/t5_2jvi82/styles/profileIcon_7ey2rc5cjgm51.jpg?width=256&height=256&crop=256:256,smart&s=a6be498005984310319de38d62c348d7d0b4efa0" alt="profile-image" class="profile"/>
+                    <div class="card-content">
+                    <h2>Dhairya Bhatt<small>Engineer</small></h3>
+                    <div class="icon-block"><a href="https://youtube.com/dhairyabhatt"><i class="fa fa-youtube"></i></a><a href="https://twitter.com/Dhairyabhatt014"> <i class="fa fa-twitter"></i></a><a href="https://dhairyabhatt.com"> <i class="fa fa-globe"></i></a></div>
+                    </div>
+                </div>
+    		</div>
+
+
             </div>
     </section>
 
@@ -1442,7 +1580,10 @@
  
  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
  <script src="https://unpkg.com/@barba/core"></script>
- <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.2.4/gsap.min.js"></script>
+ <script
+     type="text/javascript"
+     src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.2.4/gsap.min.js"
+ ></script>
  <script src="./Page-Transition-Using-BarbaJS-And-GSAP-master/main.js"></script>
 
 </body>

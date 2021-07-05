@@ -1,0 +1,40 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    color: white;
+}
+
+.loading-screen {
+    position: relative;
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    background-color: #4bedc2;
+    width: 0%;
+    height: 100%;
+    z-index: 15;
+}
+h5{
+    text-align: center;
+    position: absolute;
+    top: 50%;
+    color: black;
+}
+h5{
+    opacity: 0;
+}
+.loading-screen:focus-visible h5{
+    opacity: 1;
+}
+
+.load-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    z-index: 10;
+    pointer-events: none;
+}
