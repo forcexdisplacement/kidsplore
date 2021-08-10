@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <script>
+        if (navigator.userAgent.match(/MSIE|Internet Explorer/i) || navigator.userAgent.match(/Trident\/7\..*?rv:11/i)) {
+            var href = document.location.href;
+            if (!href.match(/[?&]nowprocket/)) {
+                if (href.indexOf("?") == -1) {
+                    if (href.indexOf("#") == -1) {
+                        document.location.href = href + "?nowprocket=1"
+                    } else {
+                        document.location.href = href.replace("#", "?nowprocket=1#")
+                    }
+                } else {
+                    if (href.indexOf("#") == -1) {
+                        document.location.href = href + "&nowprocket=1"
+                    } else {
+                        document.location.href = href.replace("#", "&nowprocket=1#")
+                    }
+                }
+            }
+        }
+    </script>
+    <script>
+        class RocketLazyLoadScripts {
+            constructor(e) {
+                this.triggerEvents = e, this.eventOptions = {
+                    passive: !0
+                }, this.userEventListener = this.triggerListener.bind(this), this.delayedScripts = {
+                    normal: [],
+                    async: [],
+                    defer: []
+                }, this.allJQueries = []
+            }
+            _addUserInteractionListener(e) {
+                this.triggerEvents.forEach((t => window.addEventListener(t, e.userEventListener, e.eventOptions)))
+            }
+            _removeUserInteractionListener(e) {
+                this.triggerEvents.forEach((t => window.removeEventListener(t, e.userEventListener, e.eventOptions)))
+            }
+            triggerListener() {
+                this._removeUserInteractionListener(this), "loading" === document.readyState ? document.addEventListener("DOMContentLoaded", this._loadEverythingNow.bind(this)) : this._loadEverythingNow()
+            }
+            async _loadEverythingNow() {
+                this._delayEventListeners(), this._delayJQueryReady(this), this._handleDocumentWrite(), this._registerAllDelayedScripts(), this._preloadAllScripts(), await this._loadScriptsFromList(this.delayedScripts.normal), await this._loadScriptsFromList(this.delayedScripts.defer), await this._loadScriptsFromList(this.delayedScripts.async), await this._triggerDOMContentLoaded(), await this._triggerWindowLoad(), window.dispatchEvent(new Event("rocket-allScriptsLoaded"))
+            }
+            _registerAllDelayedScripts() {
+                document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((e => {
+                    e.hasAttribute("src") ? e.hasAttribute("async") && !1 !== e.async ? this.delayedScripts.async.push(e) : e.hasAttribute("defer") && !1 !== e.defer || "module" === e.getAttribute("data-rocket-type") ? this.delayedScripts.defer.push(e) : this.delayedScripts.normal.push(e) : this.delayedScripts.normal.push(e)
+                }))
+            }
+            async _transformScript(e) {
+                return await this._requestAnimFrame(), new Promise((t => {
+                    const n = document.createElement("script");
+                    let i;
+                    [...e.attributes].forEach((e => {
+                        let t = e.nodeName;
+                        "type" !== t && ("data-rocket-type" === t && (t = "type", i = e.nodeValue), n.setAttribute(t, e.nodeValue))
+                    })), e.hasAttribute("src") && this._isValidScriptType(i) ? (n.addEventListener("load", t), n.addEventListener("error", t)) : (n.text = e.text, t()), e.parentNode.replaceChild(n, e)
+                }))
+            }
+            _isValidScriptType(e) {
+                return !e || "" === e || "string" == typeof e && ["text/javascript", "text/x-javascript", "text/ecmascript", "text/jscript", "application/javascript", "application/x-javascript", "application/ecmascript", "application/jscript", "module"].includes(e.toLowerCase())
+            }
+            async _loadScriptsFromList(e) {
+                const t = e.shift();
+                return t ? (await this._transformScript(t), this._loadScriptsFromList(e)) : Promise.resolve()
+            }
+            _preloadAllScripts() {
+                var e = document.createDocumentFragment();
+                [...this.delayedScripts.normal, ...this.delayedScripts.defer, ...this.delayedScripts.async].forEach((t => {
+                    const n = t.getAttribute("src");
+                    if (n) {
+                        const t = document.createElement("link");
+                        t.href = n, t.rel = "preload", t.as = "script", e.appendChild(t)
+                    }
+                })), document.head.appendChild(e)
+            }
+            _delayEventListeners() {
+                let e = {};
+
+                function t(t, n) {
+                    ! function (t) {
+                        function n(n) {
+                            return e[t].eventsToRewrite.indexOf(n) >= 0 ? "rocket-" + n : n
+                        }
+                        e[t] || (e[t] = {
+                            originalFunctions: {
+                                add: t.addEventListener,
+                                remove: t.removeEventListener
+                            },
+                            eventsToRewrite: []
+                        }, t.addEventListener = function () {
+                            arguments[0] = n(arguments[0]), e[t].originalFunctions.add.apply(t, arguments)
+                        }, t.removeEventListener = function () {
+                            arguments[0] = n(arguments[0]), e[t].originalFunctions.remove.apply(t, arguments)
+                        })
+                    }(t), e[t].eventsToRewrite.push(n)
+                }
+
+                function n(e, t) {
+                    const n = e[t];
+                    Object.defineProperty(e, t, {
+                        get: n || function () { },
+                        set: n => {
+                            e["rocket" + t] = n
+                        }
+                    })
+                }
+                t(document, "DOMContentLoaded"), t(window, "DOMContentLoaded"), t(window, "load"), t(window, "pageshow"), t(document, "readystatechange"), n(document, "onreadystatechange"), n(window, "onload"), n(window, "onpageshow")
+            }
+            _delayJQueryReady(e) {
+                let t = window.jQuery;
+                Object.defineProperty(window, "jQuery", {
+                    get: () => t,
+                    set(n) {
+                        if (n && n.fn && !e.allJQueries.includes(n)) {
+                            n.fn.ready = n.fn.init.prototype.ready = function (t) {
+                                e.domReadyFired ? t.bind(document)(n) : document.addEventListener("rocket-DOMContentLoaded", (() => t.bind(document)(n)))
+                            };
+                            const t = n.fn.on;
+                            n.fn.on = n.fn.init.prototype.on = function () {
+                                if (this[0] === window) {
+                                    function e(e) {
+                                        return e.split(" ").map((e => "load" === e || 0 === e.indexOf("load.") ? "rocket-jquery-load" : e)).join(" ")
+                                    }
+                                    "string" == typeof arguments[0] || arguments[0] instanceof String ? arguments[0] = e(arguments[0]) : "object" == typeof arguments[0] && Object.keys(arguments[0]).forEach((t => {
+                                        delete Object.assign(arguments[0], {
+                                            [e(t)]: arguments[0][t]
+                                        })[t]
+                                    }))
+                                }
+                                return t.apply(this, arguments), this
+                            }, e.allJQueries.push(n)
+                        }
+                        t = n
+                    }
+                })
+            }
+            async _triggerDOMContentLoaded() {
+                this.domReadyFired = !0, await this._requestAnimFrame(), document.dispatchEvent(new Event("rocket-DOMContentLoaded")), await this._requestAnimFrame(), window.dispatchEvent(new Event("rocket-DOMContentLoaded")), await this._requestAnimFrame(), document.dispatchEvent(new Event("rocket-readystatechange")), await this._requestAnimFrame(), document.rocketonreadystatechange && document.rocketonreadystatechange()
+            }
+            async _triggerWindowLoad() {
+                await this._requestAnimFrame(), window.dispatchEvent(new Event("rocket-load")), await this._requestAnimFrame(), window.rocketonload && window.rocketonload(), await this._requestAnimFrame(), this.allJQueries.forEach((e => e(window).trigger("rocket-jquery-load"))), window.dispatchEvent(new Event("rocket-pageshow")), await this._requestAnimFrame(), window.rocketonpageshow && window.rocketonpageshow()
+            }
+            _handleDocumentWrite() {
+                const e = new Map;
+                document.write = document.writeln = function (t) {
+                    const n = document.currentScript,
+                        i = document.createRange(),
+                        r = n.parentElement;
+                    let a = e.get(n);
+                    void 0 === a && (a = n.nextSibling, e.set(n, a));
+                    const o = document.createDocumentFragment();
+                    i.setStart(o, 0), o.appendChild(i.createContextualFragment(t)), r.insertBefore(o, a)
+                }
+            }
+            async _requestAnimFrame() {
+                return new Promise((e => requestAnimationFrame(e)))
+            }
+            static run() {
+                const e = new RocketLazyLoadScripts(["keydown", "mousemove", "touchmove", "touchstart", "touchend", "touchcancel", "touchforcechange", "wheel"]);
+                e._addUserInteractionListener(e)
+            }
+        }
+        RocketLazyLoadScripts.run();
+    </script>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+    <link rel="profile" href="https://gmpg.org/xfn/11">
+
+    <link rel="manifest" href="/superpwa-manifest.json">
+    <link rel="prefetch" href="/superpwa-manifest.json">
+    <meta name="theme-color" content="#D5E0EB">
+
+    <meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+    <link rel="alternate" hreflang="en" href="https://growcannabis.pt" />
+    <link rel="alternate" hreflang="pt-pt" href="https://growcannabis.pt/pt-pt/" />
+
+    <title>Kidsplore.club</title>
+    <link rel="stylesheet" href="https://growcannabis.pt/wp-content/cache/min/1/681c7ebf1c6018dd84543b58c9e808bc.css"
+        media="all" data-minify="1" />
+    <meta name="description"
+        content="Grow - medical cannabis Lab ᐅ The highest quality product ᐅ The world&#039;s largest EU GMP certified medical cannabis producer" />
+    <link rel="canonical" href="https://Kidsplore.club/" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Kidsplore.club" />
+    <meta property="og:description"
+        content="Grow - medical cannabis Lab ᐅ The highest quality product ᐅ The world&#039;s largest EU GMP certified medical cannabis producer" />
+    <meta property="og:url" content="https://Kidsplore.club/" />
+    <meta property="og:site_name" content="Grow" />
+    <meta property="article:modified_time" content="2021-06-21T08:00:39+00:00" />
+    <meta property="og:image" content="https://growcannabis.pt/wp-content/uploads/2021/04/og-grow.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json" class="yoast-schema-graph">
+        {
+            "@context": "https://schema.org",
+            "@graph": [{
+                "@type": "Organization",
+                "@id": "https://growcannabis.pt/#organization",
+                "name": "Grow",
+                "url": "https://growcannabis.pt/",
+                "sameAs": [],
+                "logo": {
+                    "@type": "ImageObject",
+                    "@id": "https://growcannabis.pt/#logo",
+                    "inLanguage": "en-US",
+                    "url": "https://grow.kovalweb.com/wp-content/uploads/2021/04/og-grow.png",
+                    "contentUrl": "https://grow.kovalweb.com/wp-content/uploads/2021/04/og-grow.png",
+                    "width": 1200,
+                    "height": 630,
+                    "caption": "Grow"
+                },
+                "image": {
+                    "@id": "https://growcannabis.pt/#logo"
+                }
+            }, {
+                "@type": "WebSite",
+                "@id": "https://growcannabis.pt/#website",
+                "url": "https://growcannabis.pt/",
+                "name": "Grow",
+                "description": "",
+                "publisher": {
+                    "@id": "https://growcannabis.pt/#organization"
+                },
+                "potentialAction": [{
+                    "@type": "SearchAction",
+                    "target": "https://growcannabis.pt/?s={search_term_string}",
+                    "query-input": "required name=search_term_string"
+                }],
+                "inLanguage": "en-US"
+            }, {
+                "@type": "WebPage",
+                "@id": "https://Kidsplore.club",
+                "url": "https://Kidsplore.club",
+                "name": "Kidsplore.club",
+                "isPartOf": {
+                    "@id": "Kidsplore.club"
+                },
+                "about": {
+                    "@id": "Kidsplore.clubn"
+                },
+                "datePublished": "2021-04-17T12:35:36+00:00",
+                "dateModified": "2021-06-21T08:00:39+00:00",
+                "description": "Grow - medical cannabis Lab \u1405 The highest quality product \u1405 The world's largest EU GMP certified medical cannabis producer",
+                "breadcrumb": {
+                    "@id": "Kidsplore.club"
+                },
+                "inLanguage": "en-US",
+                "potentialAction": [{
+                    "@type": "ReadAction",
+                    "target": ["Kidsplore.club"]
+                }]
+            }]
+        }
+    </script>
+
+    <link rel="alternate" type="application/rss+xml" title="Grow &raquo; Feed" href="https://growcannabis.pt/feed/" />
+    <link rel="alternate" type="application/rss+xml" title="Grow &raquo; Comments Feed"
+        href="https://growcannabis.pt/comments/feed/" />
+    <style type="text/css">
+        img.wp-smiley,
+        img.emoji {
+            display: inline !important;
+            border: none !important;
+            box-shadow: none !important;
+            height: 1em !important;
+            width: 1em !important;
+            margin: 0 .07em !important;
+            vertical-align: -0.1em !important;
+            background: none !important;
+            padding: 0 !important;
+        }
+    </style>
+    <script type='text/javascript' id='errorsLoco-js-extra'>
+        /* <![CDATA[ */
+        var formMess = {
+            "errorSubject": "The hidden \"Subject\" field can't be empty.",
+            "errorSubjectDelete": "The \"Subject\" field not found.",
+            "errorName": "Please enter your name",
+            "errorNameDelete": "The \"Name\" field not found.",
+            "errorEmail": "Please enter a valid email address",
+            "errorEmailDelete": "The \"Email\" field not found.",
+            "errorPassword": "Incorrect password",
+            "emptyPassword": "Password cannot be empty",
+            "errorPrivacy": "You didn't agree to the Privacy Policy",
+            "errorPrivacyDelete": "The \"Privacy Policy\" checkbox not found.",
+            "errorDelete": "We encourage you to reload the page and try resubmitting the form."
+        };
+        /* ]]> */
+    </script>
+    <script type='text/javascript'
+        src='https://growcannabis.pt/wp-content/themes/wpgrow/template-parts/form/errorsLoco.js?ver=5.8'
+        id='errorsLoco-js' defer></script>
+    <link rel="https://api.w.org/" href="https://growcannabis.pt/wp-json/" />
+    <link rel="alternate" type="application/json" href="https://growcannabis.pt/wp-json/wp/v2/pages/7" />
+    <link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://growcannabis.pt/xmlrpc.php?rsd" />
+    <link rel="wlwmanifest" type="application/wlwmanifest+xml"
+        href="https://growcannabis.pt/wp-includes/wlwmanifest.xml" />
+    <meta name="generator" content="WordPress 5.8" />
+    <link rel='shortlink' href='https://growcannabis.pt/' />
+    <link rel="alternate" type="application/json+oembed"
+        href="https://growcannabis.pt/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fgrowcannabis.pt%2F" />
+    <link rel="alternate" type="text/xml+oembed"
+        href="https://growcannabis.pt/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fgrowcannabis.pt%2F&#038;format=xml" />
+    <meta name="generator" content="WPML ver:4.4.10 stt:1,41;" />
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Grow - ">
+    <link rel="icon" href="https://growcannabis.pt/wp-content/uploads/2021/04/cropped-favicon-1-32x32.png"
+        sizes="32x32" />
+    <link rel="icon" href="https://growcannabis.pt/wp-content/uploads/2021/04/cropped-favicon-1-192x192.png"
+        sizes="192x192" />
+    <link rel="apple-touch-icon"
+        href="https://growcannabis.pt/wp-content/uploads/2021/04/cropped-favicon-1-180x180.png" />
+    <meta name="msapplication-TileImage"
+        content="https://growcannabis.pt/wp-content/uploads/2021/04/cropped-favicon-1-270x270.png" />
+    <link rel="preload"
+        href="https://growcannabis.pt/wp-content/themes/wpgrow/app/fonts/RidleyGroteskRegular/RidleyGroteskRegular.woff2"
+        as="font" type="font/woff2" crossorigin>
+    <link rel="preload"
+        href="https://growcannabis.pt/wp-content/themes/wpgrow/app/fonts/RidleyGroteskBold/RidleyGroteskBold.woff2"
+        as="font" type="font/woff2" crossorigin>
+    <meta name="theme-color" content="#000000">
+    <meta name="msapplication-navbutton-color" content="#000000">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#000000">
+
+    <script type="rocketlazyloadscript" async src="https://www.googletagmanager.com/gtag/js?id=G-8VPZKZW00E"></script>
+    <script type="rocketlazyloadscript">
+        window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-8VPZKZW00E');
+    </script>
+</head>
+
+<body class="home-body">
+
+    <main class="main">
+
+        <header class="header">
+            <div class="wide-container header-container">
+                <div class="header-col">
+
+                    <a href="https://growcannabis.pt/" class="logo cra" title="Grow">
+                        <svg width="133" height="28" viewBox="0 0 133 28">
+                            <use xlink:href="https://growcannabis.pt/wp-content/themes/wpgrow/app/img/sprite.svg#logo">
+                            </use>
+                        </svg>
+                    </a>
+                </div>
+                <div class="header-col">
+                    <nav class="header-nav">
+                        <ul class="list-style-none nav-list">
+                            <li>
+                                <a style="opacity: 0;" class="cra magnet" href="https://growcannabis.pt/private/"
+                                    target="_self">Private</a>
+                            </li>
+                        </ul>
+                        <div class="mnu-btn cra magnet">
+                            <svg width="33" height="33" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg">
+                                <rect y="11" height="1" width="33"></rect>
+                                <rect y="21" height="1" width="33"></rect>
+                            </svg>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </header>
+
+        <nav class="spf main-mnu">
+            <div class="main-mnu-scroll">
+                <div class="container">
+                    <div class="mm-items">
+                        <div class="mm-row">
+                            <ul id="menu-primary-menu" class="list-style-none mm-list">
+                                <li itemscope="itemscope" itemtype="https://www.schema.org/SiteNavigationElement"
+                                    data-img="https://growcannabis.pt/wp-content/uploads/2021/06/Plantomax-28-scaled.jpg"
+                                    id="menu-item-17"
+                                    class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home current-menu-item page_item page-item-7 current_page_item active">
+                                    <a href="https://growcannabis.pt/"><span class="mmi-text">Home</span><span
+                                            class="mmi-text-mask">Home</span></a></li>
+                                <li itemscope="itemscope" itemtype="https://www.schema.org/SiteNavigationElement"
+                                    data-img="https://growcannabis.pt/wp-content/uploads/2021/04/mm-item-2.jpg"
+                                    id="menu-item-18" class="menu-item menu-item-type-post_type menu-item-object-page">
+                                    <a href="https://growcannabis.pt/about-us/"><span class="mmi-text">About
+                                            Us</span><span class="mmi-text-mask">About Us</span></a></li>
+                                <li itemscope="itemscope" itemtype="https://www.schema.org/SiteNavigationElement"
+                                    data-img="https://growcannabis.pt/wp-content/uploads/2021/04/mm-item-3.jpg"
+                                    id="menu-item-20" class="menu-item menu-item-type-post_type menu-item-object-page">
+                                    <a href="https://growcannabis.pt/news/"><span class="mmi-text">News</span><span
+                                            class="mmi-text-mask">News</span></a></li>
+                                <li itemscope="itemscope" itemtype="https://www.schema.org/SiteNavigationElement"
+                                    data-img="https://growcannabis.pt/wp-content/uploads/2021/06/editedAPS17888_auto_x2-1-e1622630902165.jpg"
+                                    id="menu-item-19" class="menu-item menu-item-type-post_type menu-item-object-page">
+                                    <a href="https://growcannabis.pt/contacts/"><span
+                                            class="mmi-text">Contacts</span><span
+                                            class="mmi-text-mask">Contacts</span></a></li>
+                            </ul>
+                            <div class="mm-info">
+                                <div class="mm-info-heading">Contacts</div>
+                                <address class="mm-content">
+                                    <p><a href="/cdn-cgi/l/email-protection#5e393b2c3f321e392c31293d3f30303f3c372d702e2a"
+                                            class="cra"><span class="__cf_email__"
+                                                data-cfemail="2c4b495e4d406c4b5e435b4f4d42424d4e455f025c58">[email&#160;protected]</span></a>
+                                    </p>
+                                    <p>
+                                        <a href="https://goo.gl/maps/c9ENZtAcPYCDnSsx6" class="cra" target="_blank"
+                                            rel="noopener nofollow">Herdade dos Campilhos <br />
+                                            Espírito Santo <br />
+                                            7750-213 Mértola <br />
+                                            Portugal</a>
+                                    </p>
+                                </address>
+                                <ul class="list-style-none social mm-social">
+                                    <li>
+                                        <a href="https://www.youtube.com/" class="crh" aria-label="YouTube"
+                                            target="_blank" rel="noopener nofollow" title="YouTube">
+                                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                                <use
+                                                    xlink:href="https://growcannabis.pt/wp-content/themes/wpgrow/app/img/sprite.svg#youtube">
+                                                </use>
+                                            </svg>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="https://www.instagram.com/" class="crh" aria-label="Instagram"
+                                            target="_blank" rel="noopener nofollow" title="Instagram">
+                                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                                <use
+                                                    xlink:href="https://growcannabis.pt/wp-content/themes/wpgrow/app/img/sprite.svg#instagram">
+                                                </use>
+                                            </svg>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="https://www.facebook.com/" class="crh" aria-label="Facebook"
+                                            target="_blank" rel="noopener nofollow" title="Facebook">
+                                            <svg width="24" height="24" viewBox="0 0 24 24">
+                                                <use
+                                                    xlink:href="https://growcannabis.pt/wp-content/themes/wpgrow/app/img/sprite.svg#facebook">
+                                                </use>
+                                            </svg>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <footer class="mm-footer">
+                    <svg class="mm-lines" width="1920" height="760" viewBox="0 0 1920 760"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path class="line-wide" opacity="1" d="M-6 759L1920 759" stroke-width="1.42"
+                            stroke-miterlimit="22.9256" />
+                        <path class="line-wide" opacity="1" d="M-6 759L1920 759" stroke-width="1.42"
+                            stroke-miterlimit="22.9256" />
+                        <path class="line" opacity="0.9"
+                            d="M880.191 759.025C1237.33 759.025 1630.69 731.315 1920.48 650.734" stroke-width="1.42"
+                            stroke-miterlimit="22.9256" />
+                        <path class="line" opacity="0.8"
+                            d="M880.191 759.025C1237.33 759.025 1630.69 703.605 1920.48 542.443" stroke-width="1.42"
+                            stroke-miterlimit="22.9256" />
+                        <path class="line" opacity="0.7"
+                            d="M880.191 759.025C1237.33 759.025 1630.69 675.895 1920.48 434.164" stroke-width="1.42"
+                            stroke-miterlimit="22.9256" />
+                        <path class="line" opacity="0.6"
+                            d="M880.191 759.025C1237.33 759.025 1630.69 648.185 1920.48 325.873" stroke-width="1.42"
+                            stroke-miterlimit="22.9256" />
+                        <path class="line" opacity="0.5"
+                            d="M880.191 759.025C1237.33 759.025 1630.69 620.475 1920.48 217.582" stroke-width="1.42"
+                            stroke-miterlimit="22.9256" />
+                        <path class="line" opacity="0.4"
+                            d="M880.191 759.025C1237.33 759.025 1630.69 592.765 1920.48 109.291" stroke-width="1.42"
+                            stroke-miterlimit="22.9256" />
+                        <path class="line" opacity="0.3" d="M880.191 759.025C1237.33 759.025 1630.69 565.054 1920.48 1"
+                            stroke-width="1.42" stroke-miterlimit="22.9256" />
+                    </svg>
+                    <div class="wide-container header-container">
+                        <!-- <ul class="list-style-none lang-list mmf-item">
+                            <li class="active">
+                                <div data-title="en"><span>English</span></div>
+                            </li>
+                            <li><a href="https://growcannabis.pt/pt-pt/" class="cra magnet" data-title="pt-pt"
+                                    aria-label="Português"><span>Português</span></a></li>
+                        </ul> -->
+                        <div class="mm-copyright mmf-item">© 2021 Kidsplore.club . All rights reserved</div>
+                        <div class="mm-copyright mmf-item">by <a href="https://dhairyabhatt.com/" class="cra">Dhairya Bhatt</a>
+                        </div>
+                        <ul class="list-style-none nav-list mmf-item">
+                            <li>
+                                <a class="cra magnet" href="https://growcannabis.pt/privacy-policy/"
+                                    target="_self">Privacy Policy</a>
+                            </li>
+                        </ul>
+                    </div>
+                </footer>
+            </div>
+            <div class="mmi-imgs">
+                <svg viewBox="0 0 222 220">
+                    <use xlink:href="https://growcannabis.pt/wp-content/themes/wpgrow/assets/img/sprite.svg#decor-min">
+                    </use>
+                </svg>
+            </div>
+        </nav>
+
+        <div class="intro">
+            <div class="intro-items">
+                <div class="intro-item active">
+                    <div class="container">
+                        <div class="intro-item-content">
+                            <div class="intro-item-info">
+                                <h1 class="intro-item-heading">Kidsplore.club</h1>
+                                <div class="intro-item-desc">
+                                    <p>A Channel to broadcast the talents of young minds, particularly in the field of Science!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="intro-item">
+                    <div class="container">
+                        <div class="intro-item-content">
+                            <div class="intro-item-info">
+                                <h1 class="intro-item-heading">Videos</h1>
+                                <div class="intro-item-desc">
+                                    <button><a>Latest video</a></button>
+                                    <p><strong>Growing with scientific precision</strong> in exceptional natural
+                                        conditions.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="intro-item">
+                    <div class="container">
+                        <div class="intro-item-content">
+                            <div class="intro-item-info">
+                                <h1 class="intro-item-heading">Extract</h1>
+                                <div class="intro-item-desc">
+                                    <p><strong>The highest quality</strong> achieved from research and technology
+                                        innovation.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="intro-item">
+                    <div class="container">
+                        <div class="intro-item-content">
+                            <div class="intro-item-info">
+                                <h1 class="intro-item-heading">Certification</h1>
+                                <div class="intro-item-desc">
+                                    <p><strong>The largest producer</strong> of EU GMP medical cannabis in the world.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="intro-item">
+                    <div class="container">
+                        <div class="intro-item-content">
+                            <div class="intro-item-info">
+                                <h1 class="intro-item-heading">Medical</h1>
+                                <div class="intro-item-desc">
+                                    <p><strong>Improving quality of life</strong> for millions of patients around the
+                                        world.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="wide-container intro-mc-outer">
+                <div class="intro-mc">
+                    <svg viewBox="0 0 5 95">
+                        <use xlink:href="https://growcannabis.pt/wp-content/themes/wpgrow/app/img/sprite.svg#mc"></use>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="ibgs intro-bg">
+            <div class="ibgs ibg-init"
+                style="background-image: url(https://growcannabis.pt/wp-content/themes/wpgrow/assets/img/bg1.jpg)">
+            </div>
+            <div class="ibgs ibg-anim"></div>
+            <div class="ibgs ibg-imgs">
+                <div class="ibg-img lazy"
+                    data-background-image="https://growcannabis.pt/wp-content/uploads/2021/06/ii1.png"></div>
+                <div class="ibg-img lazy"
+                    data-background-image="https://growcannabis.pt/wp-content/uploads/2021/05/iStock-1292760086-e1622121677571.jpg">
+                </div>
+                <div class="ibg-img lazy"
+                    data-background-image="https://growcannabis.pt/wp-content/uploads/2021/05/intro-bg3.jpg"></div>
+                <div class="ibg-img lazy"
+                    data-background-image="https://growcannabis.pt/wp-content/uploads/2021/05/Plantomax-28-1470x980.jpg">
+                </div>
+                <div class="ibg-img lazy"
+                    data-background-image="https://growcannabis.pt/wp-content/uploads/2021/05/intro-bg5.jpg"></div>
+            </div>
+            <div class="ibgs ibg-mobile">
+                <picture class="lazy active" data-alt="">
+                    <source
+                        srcset="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        data-srcset="https://growcannabis.pt/wp-content/uploads/2021/06/ii1-480x812.png"
+                        media="(max-width: 480px)">
+                    <source
+                        srcset="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        data-srcset="https://growcannabis.pt/wp-content/uploads/2021/06/ii1-812x400.png"
+                        media="(max-width: 900px) and (orientation: landscape)">
+                    <source
+                        srcset="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        data-srcset="https://growcannabis.pt/wp-content/uploads/2021/06/ii1.png"
+                        media="(min-width: 280px)">
+                    <img src="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        alt="">
+                </picture>
+                <picture class="lazy" data-alt="">
+                    <source
+                        srcset="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        data-srcset="https://growcannabis.pt/wp-content/uploads/2021/05/iStock-1292760086-e1622121677571-480x812.jpg"
+                        media="(max-width: 480px)">
+                    <source
+                        srcset="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        data-srcset="https://growcannabis.pt/wp-content/uploads/2021/05/iStock-1292760086-e1622121677571-812x400.jpg"
+                        media="(max-width: 900px) and (orientation: landscape)">
+                    <source
+                        srcset="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        data-srcset="https://growcannabis.pt/wp-content/uploads/2021/05/iStock-1292760086-e1622121677571.jpg"
+                        media="(min-width: 280px)">
+                    <img src="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        alt="">
+                </picture>
+                <picture class="lazy" data-alt="">
+                    <source
+                        srcset="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        data-srcset="https://growcannabis.pt/wp-content/uploads/2021/05/intro-bg3-480x812.jpg"
+                        media="(max-width: 480px)">
+                    <source
+                        srcset="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        data-srcset="https://growcannabis.pt/wp-content/uploads/2021/05/intro-bg3-812x400.jpg"
+                        media="(max-width: 900px) and (orientation: landscape)">
+                    <source
+                        srcset="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        data-srcset="https://growcannabis.pt/wp-content/uploads/2021/05/intro-bg3.jpg"
+                        media="(min-width: 280px)">
+                    <img src="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        alt="">
+                </picture>
+                <picture class="lazy" data-alt="">
+                    <source
+                        srcset="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        data-srcset="https://growcannabis.pt/wp-content/uploads/2021/05/Plantomax-28-480x812.jpg"
+                        media="(max-width: 480px)">
+                    <source
+                        srcset="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        data-srcset="https://growcannabis.pt/wp-content/uploads/2021/05/Plantomax-28-812x400.jpg"
+                        media="(max-width: 900px) and (orientation: landscape)">
+                    <source
+                        srcset="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        data-srcset="https://growcannabis.pt/wp-content/uploads/2021/05/Plantomax-28-1470x980.jpg"
+                        media="(min-width: 280px)">
+                    <img src="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        alt="">
+                </picture>
+                <picture class="lazy" data-alt="">
+                    <source
+                        srcset="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        data-srcset="https://growcannabis.pt/wp-content/uploads/2021/05/intro-bg5-480x812.jpg"
+                        media="(max-width: 480px)">
+                    <source
+                        srcset="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        data-srcset="https://growcannabis.pt/wp-content/uploads/2021/05/intro-bg5-812x400.jpg"
+                        media="(max-width: 900px) and (orientation: landscape)">
+                    <source
+                        srcset="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        data-srcset="https://growcannabis.pt/wp-content/uploads/2021/05/intro-bg5.jpg"
+                        media="(min-width: 280px)">
+                    <img src="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                        alt="">
+                </picture>
+            </div>
+        </div>
+
+        <div class="intro-nav">
+            <ol class="list-style-none intro-nav-list">
+                <li class="active">
+                    <div class="intro-nav-toggle crm"><span>1/5</span></div>
+                </li>
+                <li class="">
+                    <div class="intro-nav-toggle crm"><span>2/5</span></div>
+                </li>
+                <li class="">
+                    <div class="intro-nav-toggle crm"><span>3/5</span></div>
+                </li>
+                <li class="">
+                    <div class="intro-nav-toggle crm"><span>4/5</span></div>
+                </li>
+                <li class="">
+                    <div class="intro-nav-toggle crm"><span>5/5</span></div>
+                </li>
+            </ol>
+        </div>
+
+        <div class="intro-lines">
+            <svg viewBox="0 0 1920 760" xmlns="http://www.w3.org/2000/svg">
+                <path class="line-wide" opacity="1" d="M-6 759L1920 759" stroke-width="1.42"
+                    stroke-miterlimit="22.9256" />
+                <path class="line-wide" opacity="1" d="M-6 759L1920 759" stroke-width="1.42"
+                    stroke-miterlimit="22.9256" />
+                <path class="line" opacity="0.9" d="M880.191 759.025C1237.33 759.025 1630.69 731.315 1920.48 650.734"
+                    stroke-width="1.42" stroke-miterlimit="22.9256" />
+                <path class="line" opacity="0.8" d="M880.191 759.025C1237.33 759.025 1630.69 703.605 1920.48 542.443"
+                    stroke-width="1.42" stroke-miterlimit="22.9256" />
+                <path class="line" opacity="0.7" d="M880.191 759.025C1237.33 759.025 1630.69 675.895 1920.48 434.164"
+                    stroke-width="1.42" stroke-miterlimit="22.9256" />
+                <path class="line" opacity="0.6" d="M880.191 759.025C1237.33 759.025 1630.69 648.185 1920.48 325.873"
+                    stroke-width="1.42" stroke-miterlimit="22.9256" />
+                <path class="line" opacity="0.5" d="M880.191 759.025C1237.33 759.025 1630.69 620.475 1920.48 217.582"
+                    stroke-width="1.42" stroke-miterlimit="22.9256" />
+                <path class="line" opacity="0.4" d="M880.191 759.025C1237.33 759.025 1630.69 592.765 1920.48 109.291"
+                    stroke-width="1.42" stroke-miterlimit="22.9256" />
+                <path class="line" opacity="0.3" d="M880.191 759.025C1237.33 759.025 1630.69 565.054 1920.48 1"
+                    stroke-width="1.42" stroke-miterlimit="22.9256" />
+            </svg>
+        </div>
+
+        <div class="spf preloader">
+            <svg width="331" height="112" viewBox="0 0 331 112" xmlns="http://www.w3.org/2000/svg">
+                <path class="psvgpl" fill-rule="evenodd" clip-rule="evenodd"
+                    d="M256.079 67.8942H269.386L283.201 26.9534L297.117 67.8942H310.322L330.333 5.92154V1.2251H315.706L303.009 45.1266L288.788 3.16493H277.716L263.393 45.1266L250.696 1.2251H236.068V5.61525L256.079 67.8942Z" />
+                <path class="psvgpl" fill-rule="evenodd" clip-rule="evenodd"
+                    d="M130.224 43.1868C137.843 39.7155 142.718 32.5688 142.718 23.3801C142.718 10.2096 132.662 1.2251 119.457 1.2251H83.9043V67.8942H99.0395V45.3308H115.394L130.326 67.8942H143.836V63.4019L130.224 43.1868ZM99.0395 14.906H117.628C123.317 14.906 127.481 18.2752 127.481 23.5843C127.481 28.9954 123.317 32.3646 117.628 32.3646H99.0395V14.906Z" />
+                <path class="psvgpl" fill-rule="evenodd" clip-rule="evenodd"
+                    d="M36.4667 30.3227V42.7785H52.4145V50.742C47.9451 54.0091 43.0693 55.4384 37.2793 55.4384C22.5504 55.4384 15.3384 46.4539 15.3384 34.7128C15.3384 22.5633 22.9567 13.9872 35.5525 13.9872C44.3898 13.9872 49.6719 18.2753 52.2114 23.7885L65.2134 17.0501C60.3376 6.73838 49.4687 0 35.3493 0C13.6115 0 0 15.7229 0 34.8149C0 53.4986 13.4084 69.2215 36.873 69.2215C49.164 69.2215 59.2203 64.8313 66.3308 57.072V30.3227H36.4667Z" />
+                <path class="psvgpl" fill-rule="evenodd" clip-rule="evenodd"
+                    d="M187.819 68.9153C170.551 67.0776 157.143 52.3756 157.143 34.5087C157.143 16.6418 170.551 2.04201 187.819 0.102173V15.1104C178.779 16.846 171.871 24.9117 171.871 34.5087C171.871 44.1058 178.677 52.1714 187.819 53.9071V68.9153Z" />
+                <path class="psvgpl" fill-rule="evenodd" clip-rule="evenodd"
+                    d="M195.336 0.203979C212.604 2.04172 226.013 16.7436 226.013 34.6105C226.013 52.4774 212.604 67.0773 195.336 69.0171V54.0089C204.376 52.2733 211.284 44.2076 211.284 34.6105C211.284 25.0135 204.478 16.9478 195.336 15.2122V0.203979Z" />
+                <path class="psvgps"
+                    d="M13.9162 95.7665L8.63413 102.913L3.35204 95.7665H0.304688V111.694H3.96151V101.79L8.53255 107.916H8.83728L13.4083 101.79V111.694H17.0651V95.7665H13.9162ZM30.2704 108.324V105.364H36.0603V102.097H30.2704V99.2378H39.3108V95.8686H26.7151V111.796H39.6156V108.427H30.2704V108.324ZM55.0555 95.7665H48.3513V111.694H55.0555C59.7281 111.694 63.2834 108.222 63.2834 103.73C63.385 99.2378 59.8297 95.7665 55.0555 95.7665ZM55.0555 108.324H52.0082V99.1357H55.0555C57.7981 99.1357 59.7281 100.973 59.7281 103.73C59.7281 106.487 57.7981 108.324 55.0555 108.324ZM72.2223 95.7665V111.694H75.8791V95.7665H72.2223ZM92.9443 112C96.2964 112 98.9374 110.366 100.055 107.916L97.0074 106.18C96.398 107.61 94.8743 108.631 92.9443 108.631C89.9985 108.631 88.2717 106.487 88.2717 103.832C88.2717 101.076 89.8969 99.0336 92.8427 99.0336C94.7727 99.0336 96.1948 99.9525 96.9059 101.484L99.9532 99.7483C98.8359 97.298 96.1948 95.6644 92.8427 95.6644C87.7638 95.6644 84.6149 99.3399 84.6149 103.934C84.6149 108.324 87.8654 112 92.9443 112ZM117.12 95.7665H113.362L106.556 111.489V111.694H110.416L111.533 108.937H118.948L120.066 111.694H123.926V111.489L117.12 95.7665ZM112.854 105.772L115.292 99.7483L117.729 105.772H112.854ZM135.607 108.324V95.7665H132.052V111.694H144.546V108.324H135.607Z" />
+                <path class="psvgps"
+                    d="M168.925 112C172.277 112 174.918 110.367 176.036 107.916L172.988 106.181C172.379 107.61 170.855 108.631 168.925 108.631C165.979 108.631 164.253 106.487 164.253 103.832C164.253 101.076 165.878 99.0338 168.824 99.0338C170.754 99.0338 172.176 99.9527 172.887 101.484L175.934 99.7485C174.817 97.2982 172.176 95.6646 168.824 95.6646C163.745 95.6646 160.596 99.3401 160.596 103.934C160.697 108.325 163.846 112 168.925 112ZM193.202 95.7667H189.444L182.638 111.49V111.694H186.498L187.616 108.937H195.031L196.148 111.694H200.008V111.49L193.202 95.7667ZM188.835 105.772L191.272 99.7485L193.71 105.772H188.835ZM219.105 95.7667V105.67L211.182 95.7667H208.033V111.694H211.69V101.79L219.613 111.694H222.762V95.7667H219.105ZM243.484 95.7667V105.67L235.561 95.7667H232.412V111.694H236.069V101.79L243.992 111.694H247.141V95.7667H243.484ZM265.729 95.7667H261.971L255.165 111.49V111.694H259.025L260.143 108.937H267.558L268.675 111.694H272.535V111.49L265.729 95.7667ZM261.463 105.772L263.901 99.7485L266.339 105.772H261.463ZM280.661 111.694H290.515C293.054 111.694 294.984 110.06 294.984 107.406C294.984 105.262 293.765 104.037 292.14 103.526C293.257 102.914 294.07 101.79 294.07 100.157C294.07 97.7066 292.241 95.8688 289.6 95.8688H280.661V111.694ZM284.217 102.301V98.8296H288.585C289.804 98.8296 290.413 99.4422 290.413 100.565C290.413 101.688 289.702 102.301 288.585 102.301H284.217ZM284.217 108.733V105.16H289.397C290.616 105.16 291.327 105.874 291.327 106.895C291.327 107.916 290.616 108.631 289.397 108.631H284.217V108.733ZM303.72 95.7667V111.694H307.377V95.7667H303.72ZM323.223 112C327.388 112 330.537 110.264 330.537 106.793C330.537 103.118 327.184 102.607 323.629 102.199C320.582 101.79 319.871 101.484 319.871 100.565C319.871 99.5443 320.683 98.7275 323.02 98.7275C325.153 98.7275 326.575 99.4422 326.981 100.667L329.927 99.1359C329.013 97.094 326.677 95.4604 323.02 95.4604C318.957 95.4604 316.214 97.5024 316.214 100.769C316.214 104.343 319.464 104.853 322.817 105.364C326.169 105.874 326.88 106.078 326.88 106.895C326.88 108.12 325.559 108.733 323.426 108.733C320.988 108.733 319.058 108.12 317.535 106.793L315.909 109.856C318.042 111.285 320.48 112 323.223 112Z" />
+            </svg>
+        </div>
+        <div class="cursor"></div>
+    </main>
+    <div class="detect-browser" data-title="Your browser is out of date!"
+        data-desc="To use our website, update your browser to the latest version or install any other of the proposed options:"
+        style="display: none;">
+        <div class="db-content-row">
+            <div class="db-content-col">
+                <div class="db-content-inner">
+                    <div class="section-heading s-heading">
+                        <h3 class="dtb-title">Your browser is out of date!</h3>
+                        <p class="dtb-desc">To use our website, update your browser to the latest version or install any
+                            other of the proposed options:</p>
+                    </div>
+                    <ul class="db-list">
+                        <li>
+                            <a href="https://www.google.com/chrome/" aria-label="Chrome" target="_blank"
+                                rel="noopener nofollow">
+                                <img src="https://growcannabis.pt/wp-content/themes/wpgrow/app/img/chrome-icon.svg"
+                                    width="48" height="48" alt="">
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.mozilla.org/en-US/firefox/new/" aria-label="Firefox" target="_blank"
+                                rel="noopener nofollow">
+                                <img src="https://growcannabis.pt/wp-content/themes/wpgrow/app/img/firefox-icon.svg"
+                                    width="48" height="48" alt="">
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.opera.com" aria-label="Opera" target="_blank" rel="noopener nofollow">
+                                <img src="https://growcannabis.pt/wp-content/themes/wpgrow/app/img/opera-icon.svg"
+                                    width="48" height="48" alt="">
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.apple.com/safari/" aria-label="Safari" target="_blank"
+                                rel="noopener nofollow">
+                                <img src="https://growcannabis.pt/wp-content/themes/wpgrow/app/img/safari-icon.svg"
+                                    width="48" height="48" alt="">
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.microsoft.com/en-us/edge" aria-label="Edge" target="_blank"
+                                rel="noopener nofollow">
+                                <img src="https://growcannabis.pt/wp-content/themes/wpgrow/app/img/edge-icon.svg"
+                                    width="48" height="48" alt="">
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+    <script type='text/javascript' id='superpwa-register-sw-js-extra'>
+        /* <![CDATA[ */
+        var superpwa_sw = {
+            "url": "\/superpwa-sw.js",
+            "disable_addtohome": "1",
+            "enableOnDesktop": ""
+        };
+        /* ]]> */
+    </script>
+    <script data-minify="1" type='text/javascript'
+        src='https://growcannabis.pt/wp-content/cache/min/1/wp-content/plugins/super-progressive-web-apps/public/js/register-sw.js?ver=1627581498'
+        id='superpwa-register-sw-js' defer></script>
+    <script type='text/javascript' id='rocket-browser-checker-js-after'>
+        "use strict";
+        var _createClass = function () {
+            function defineProperties(target, props) {
+                for (var i = 0; i < props.length; i++) {
+                    var descriptor = props[i];
+                    descriptor.enumerable = descriptor.enumerable || !1, descriptor.configurable = !0, "value" in descriptor && (descriptor.writable = !0), Object.defineProperty(target, descriptor.key, descriptor)
+                }
+            }
+            return function (Constructor, protoProps, staticProps) {
+                return protoProps && defineProperties(Constructor.prototype, protoProps), staticProps && defineProperties(Constructor, staticProps), Constructor
+            }
+        }();
+
+        function _classCallCheck(instance, Constructor) {
+            if (!(instance instanceof Constructor)) throw new TypeError("Cannot call a class as a function")
+        }
+        var RocketBrowserCompatibilityChecker = function () {
+            function RocketBrowserCompatibilityChecker(options) {
+                _classCallCheck(this, RocketBrowserCompatibilityChecker), this.passiveSupported = !1, this._checkPassiveOption(this), this.options = !!this.passiveSupported && options
+            }
+            return _createClass(RocketBrowserCompatibilityChecker, [{
+                key: "_checkPassiveOption",
+                value: function (self) {
+                    try {
+                        var options = {
+                            get passive() {
+                                return !(self.passiveSupported = !0)
+                            }
+                        };
+                        window.addEventListener("test", null, options), window.removeEventListener("test", null, options)
+                    } catch (err) {
+                        self.passiveSupported = !1
+                    }
+                }
+            }, {
+                key: "initRequestIdleCallback",
+                value: function () {
+                    !1 in window && (window.requestIdleCallback = function (cb) {
+                        var start = Date.now();
+                        return setTimeout(function () {
+                            cb({
+                                didTimeout: !1,
+                                timeRemaining: function () {
+                                    return Math.max(0, 50 - (Date.now() - start))
+                                }
+                            })
+                        }, 1)
+                    }), !1 in window && (window.cancelIdleCallback = function (id) {
+                        return clearTimeout(id)
+                    })
+                }
+            }, {
+                key: "isDataSaverModeOn",
+                value: function () {
+                    return "connection" in navigator && !0 === navigator.connection.saveData
+                }
+            }, {
+                key: "supportsLinkPrefetch",
+                value: function () {
+                    var elem = document.createElement("link");
+                    return elem.relList && elem.relList.supports && elem.relList.supports("prefetch") && window.IntersectionObserver && "isIntersecting" in IntersectionObserverEntry.prototype
+                }
+            }, {
+                key: "isSlowConnection",
+                value: function () {
+                    return "connection" in navigator && "effectiveType" in navigator.connection && ("2g" === navigator.connection.effectiveType || "slow-2g" === navigator.connection.effectiveType)
+                }
+            }]), RocketBrowserCompatibilityChecker
+        }();
+    </script>
+    <script type='text/javascript' id='rocket-preload-links-js-extra'>
+        /* <![CDATA[ */
+        var RocketPreloadLinksConfig = {
+            "excludeUris": "\/(.+\/)?feed\/?.+\/?|\/(?:.+\/)?embed\/|\/(index\\.php\/)?wp\\-json(\/.*|$)|\/wp-admin\/|\/logout\/|\/wp-login.php",
+            "usesTrailingSlash": "1",
+            "imageExt": "jpg|jpeg|gif|png|tiff|bmp|webp|avif",
+            "fileExt": "jpg|jpeg|gif|png|tiff|bmp|webp|avif|php|pdf|html|htm",
+            "siteUrl": "https:\/\/growcannabis.pt",
+            "onHoverDelay": "100",
+            "rateThrottle": "3"
+        };
+        /* ]]> */
+    </script>
+    <script type='text/javascript' id='rocket-preload-links-js-after'>
+        (function () {
+            "use strict";
+            var r = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (e) {
+                return typeof e
+            } : function (e) {
+                return e && "function" == typeof Symbol && e.constructor === Symbol && e !== Symbol.prototype ? "symbol" : typeof e
+            },
+                e = function () {
+                    function i(e, t) {
+                        for (var n = 0; n < t.length; n++) {
+                            var i = t[n];
+                            i.enumerable = i.enumerable || !1, i.configurable = !0, "value" in i && (i.writable = !0), Object.defineProperty(e, i.key, i)
+                        }
+                    }
+                    return function (e, t, n) {
+                        return t && i(e.prototype, t), n && i(e, n), e
+                    }
+                }();
+
+            function i(e, t) {
+                if (!(e instanceof t)) throw new TypeError("Cannot call a class as a function")
+            }
+            var t = function () {
+                function n(e, t) {
+                    i(this, n), this.browser = e, this.config = t, this.options = this.browser.options, this.prefetched = new Set, this.eventTime = null, this.threshold = 1111, this.numOnHover = 0
+                }
+                return e(n, [{
+                    key: "init",
+                    value: function () {
+                        !this.browser.supportsLinkPrefetch() || this.browser.isDataSaverModeOn() || this.browser.isSlowConnection() || (this.regex = {
+                            excludeUris: RegExp(this.config.excludeUris, "i"),
+                            images: RegExp(".(" + this.config.imageExt + ")$", "i"),
+                            fileExt: RegExp(".(" + this.config.fileExt + ")$", "i")
+                        }, this._initListeners(this))
+                    }
+                }, {
+                    key: "_initListeners",
+                    value: function (e) {
+                        -1 < this.config.onHoverDelay && document.addEventListener("mouseover", e.listener.bind(e), e.listenerOptions), document.addEventListener("mousedown", e.listener.bind(e), e.listenerOptions), document.addEventListener("touchstart", e.listener.bind(e), e.listenerOptions)
+                    }
+                }, {
+                    key: "listener",
+                    value: function (e) {
+                        var t = e.target.closest("a"),
+                            n = this._prepareUrl(t);
+                        if (null !== n) switch (e.type) {
+                            case "mousedown":
+                            case "touchstart":
+                                this._addPrefetchLink(n);
+                                break;
+                            case "mouseover":
+                                this._earlyPrefetch(t, n, "mouseout")
+                        }
+                    }
+                }, {
+                    key: "_earlyPrefetch",
+                    value: function (t, e, n) {
+                        var i = this,
+                            r = setTimeout(function () {
+                                if (r = null, 0 === i.numOnHover) setTimeout(function () {
+                                    return i.numOnHover = 0
+                                }, 1e3);
+                                else if (i.numOnHover > i.config.rateThrottle) return;
+                                i.numOnHover++, i._addPrefetchLink(e)
+                            }, this.config.onHoverDelay);
+                        t.addEventListener(n, function e() {
+                            t.removeEventListener(n, e, {
+                                passive: !0
+                            }), null !== r && (clearTimeout(r), r = null)
+                        }, {
+                            passive: !0
+                        })
+                    }
+                }, {
+                    key: "_addPrefetchLink",
+                    value: function (i) {
+                        return this.prefetched.add(i.href), new Promise(function (e, t) {
+                            var n = document.createElement("link");
+                            n.rel = "prefetch", n.href = i.href, n.onload = e, n.onerror = t, document.head.appendChild(n)
+                        }).catch(function () { })
+                    }
+                }, {
+                    key: "_prepareUrl",
+                    value: function (e) {
+                        if (null === e || "object" !== (void 0 === e ? "undefined" : r(e)) || !1 in e || -1 === ["http:", "https:"].indexOf(e.protocol)) return null;
+                        var t = e.href.substring(0, this.config.siteUrl.length),
+                            n = this._getPathname(e.href, t),
+                            i = {
+                                original: e.href,
+                                protocol: e.protocol,
+                                origin: t,
+                                pathname: n,
+                                href: t + n
+                            };
+                        return this._isLinkOk(i) ? i : null
+                    }
+                }, {
+                    key: "_getPathname",
+                    value: function (e, t) {
+                        var n = t ? e.substring(this.config.siteUrl.length) : e;
+                        return n.startsWith("/") || (n = "/" + n), this._shouldAddTrailingSlash(n) ? n + "/" : n
+                    }
+                }, {
+                    key: "_shouldAddTrailingSlash",
+                    value: function (e) {
+                        return this.config.usesTrailingSlash && !e.endsWith("/") && !this.regex.fileExt.test(e)
+                    }
+                }, {
+                    key: "_isLinkOk",
+                    value: function (e) {
+                        return null !== e && "object" === (void 0 === e ? "undefined" : r(e)) && (!this.prefetched.has(e.href) && e.origin === this.config.siteUrl && -1 === e.href.indexOf("?") && -1 === e.href.indexOf("#") && !this.regex.excludeUris.test(e.href) && !this.regex.images.test(e.href))
+                    }
+                }], [{
+                    key: "run",
+                    value: function () {
+                        "undefined" != typeof RocketPreloadLinksConfig && new n(new RocketBrowserCompatibilityChecker({
+                            capture: !0,
+                            passive: !0
+                        }), RocketPreloadLinksConfig).init()
+                    }
+                }]), n
+            }();
+            t.run();
+        }());
+    </script>
+    <script type='text/javascript'
+        src='https://growcannabis.pt/wp-content/themes/wpgrow/app/js/libs/lozad.min.js?ver=5.8' id='lozad-js'
+        defer></script>
+    <script type='text/javascript'
+        src='https://growcannabis.pt/wp-content/themes/wpgrow/app/js/gsap/gsap.min.js?ver=5.8' id='gsap-js'
+        defer></script>
+    <script type='text/javascript'
+        src='https://growcannabis.pt/wp-content/themes/wpgrow/app/js/gsap/ScrollTrigger.min.js?ver=5.8'
+        id='gsap-scroll-trigger-js' defer></script>
+    <script type='text/javascript'
+        src='https://growcannabis.pt/wp-content/themes/wpgrow/app/js/gsap/SplitText.min.js?ver=5.8'
+        id='gsap-split-text-js' defer></script>
+    <script type='text/javascript'
+        src='https://growcannabis.pt/wp-content/themes/wpgrow/app/js/gsap/DrawSVGPlugin.min.js?ver=5.8'
+        id='gsap-drow-svg-plugin-js' defer></script>
+    <script data-minify="1" type='text/javascript'
+        src='https://growcannabis.pt/wp-content/cache/min/1/wp-content/themes/wpgrow/app/js/custom.js?ver=1627581498'
+        id='custom-script-js' defer></script>
+    <script data-minify="1" type='text/javascript'
+        src='https://growcannabis.pt/wp-content/cache/min/1/wp-content/themes/wpgrow/app/js/home.js?ver=1627581498'
+        id='home-script-js' defer></script>
+    <script type='text/javascript' src='https://growcannabis.pt/wp-includes/js/wp-embed.min.js?ver=5.8' id='wp-embed-js'
+        defer></script>
+</body>
+
+</html>
